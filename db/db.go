@@ -1,7 +1,10 @@
 package db
 
 import (
+	"fmt"
 	"github.com/garyburd/redigo/redis"
+	"net/url"
+	"os"
 )
 
 var conn redis.Conn
@@ -11,7 +14,23 @@ const (
 )
 
 func init() {
-	conn, _ = redis.Dial("tcp", address)
+	if s := os.Getenv("REDISTOGO_URL"); s != "" {
+		var err error
+		fmt.Println(s)
+		u, _ := url.Parse(s)
+		conn, err = redis.Dial("tcp", u.Host)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		p, _ := u.User.Password()
+		fmt.Println(p)
+		_, err = conn.Do("AUTH", p)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	} else {
+		conn, _ = redis.Dial("tcp", address)
+	}
 }
 
 // Read function
