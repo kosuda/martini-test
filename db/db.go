@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"net/url"
 	"os"
@@ -14,27 +13,26 @@ const (
 )
 
 func init() {
+
 	if s := os.Getenv("REDISTOGO_URL"); s != "" {
-		var err error
-		fmt.Println(s)
 		u, _ := url.Parse(s)
-		conn, err = redis.Dial("tcp", u.Host)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
+		conn, _ = redis.Dial("tcp", u.Host)
 		p, _ := u.User.Password()
-		fmt.Println(p)
-		_, err = conn.Do("AUTH", p)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
+		conn.Do("AUTH", p)
+
+	} else if s := os.Getenv("WERCKER_REDIS_HOST") + ":" + os.Getenv("WERCKER_REDIS_PORT"); s != "" {
+		conn, _ = redis.Dial("tcp", s)
+
 	} else {
 		conn, _ = redis.Dial("tcp", address)
+
 	}
+
 }
 
 // Read function
 func Read(key string, data interface{}) error {
+
 	res, _ := redis.Values(conn.Do("HGETALL", key))
 
 	if err := redis.ScanStruct(res, data); err != nil {
@@ -42,6 +40,7 @@ func Read(key string, data interface{}) error {
 	}
 
 	return nil
+
 }
 
 // Write fucntion
@@ -52,4 +51,5 @@ func Write(key string, data interface{}) error {
 	}
 
 	return nil
+
 }

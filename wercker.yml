@@ -1,7 +1,8 @@
 box: wercker/golang
 # Services
-#services:
-# Build definition
+services:
+  - wercker/redis
+
 build:
   # The steps that will be executed on build
   steps:
@@ -19,41 +20,39 @@ build:
             godep restore
 
     # Test the project
-    # - script:
-    #     name: go test
-    #     code: |
-    #       go test -v steps:
+    - script:
+        name: go test
+        code: |
+          go test ./...
 
     # Build the project
     - script:
         name: go build
         code: |
             go build .
-            ls
-            cp golang-web $WERCKER_CACHE_DIR
 
     - script:
         name: copy output
-        code: |-
-            ls
-            rsync -avz "$WERCKER_SOURCE_DIR/" "$WERCKER_OUTPUT_DIR"
+        code: |
+            rsync -avz "$WERCKER_SOURCE_DIR/golang-web" "$WERCKER_OUTPUT_DIR"
 deploy:
-    steps:
-        - add-to-known_hosts:
-            hostname: 54.213.36.40
+  steps:
+    - add-to-known_hosts:
+        hostname: 54.213.36.40
 
-        - mktemp:
-            envvar: PRIVATEKEY_PATH
+    - mktemp:
+        envvar: PRIVATEKEY_PATH
 
-        - create-file:
-            name: write key
-            filename: $PRIVATEKEY_PATH
-            content: $AWS_DEPLOY_PRIVATE
-            overwrite: true
-            hide-from-log: true
+    - create-file:
+        name: write key
+        filename: $PRIVATEKEY_PATH
+        content: $AWS_DEPLOY_PRIVATE
+        overwrite: true
+        hide-from-log: true
 
-        - script:
-            name: deploy to aws
-            code: |
-                ls $WERCKER_OUTPUT_DIR
-                rsync -v -e "ssh -i $PRIVATEKEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=no" $WERCKER_OUTPUT_DIR/golang-web goadm@54.213.36.40:/usr/local/src/go/bin
+    - sjoerdmulder/rsync-deploy:
+        host: 54.213.36.40
+        directory: /usr/local/src/go/bin
+        sshkey: $PRIVATEKEY_PATH
+        user: goadm
+        soruce: $WERCKER_OUTPUT_DIR

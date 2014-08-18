@@ -3,6 +3,7 @@ package conf
 import (
 	"github.com/go-martini/martini"
 	"github.com/kosuda/golang-web/controllers"
+	"github.com/kosuda/golang-web/models"
 	"github.com/martini-contrib/binding"
 )
 
@@ -16,8 +17,8 @@ func Router() martini.Router {
 func setup(router martini.Router) {
 	router.Get("/user/:id", controllers.UserGet)
 
-	router.Post("/user/:id",
-		binding.Json(controllers.User{}),
+	router.Put("/user/:id",
+		binding.Json(models.User{}),
 		binding.ErrorHandler,
 		controllers.UserPut)
 }
