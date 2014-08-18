@@ -20,8 +20,8 @@ func init() {
 		p, _ := u.User.Password()
 		conn.Do("AUTH", p)
 
-	} else if s := os.Getenv("WERCKER_REDIS_HOST") + ":" + os.Getenv("WERCKER_REDIS_PORT"); s != "" {
-		conn, _ = redis.Dial("tcp", s)
+	} else if s := os.Getenv("WERCKER_REDIS_HOST"); s != "" {
+		conn, _ = redis.Dial("tcp", s+":6379")
 
 	} else {
 		conn, _ = redis.Dial("tcp", address)

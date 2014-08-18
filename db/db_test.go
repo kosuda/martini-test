@@ -7,7 +7,7 @@ import (
 
 func TestWrite(t *testing.T) {
 	data := &models.User{Name: "spam", Tel: "ham"}
-	err := Write("test:1", &data)
+	err := Write("test:1", data)
 
 	if err != nil {
 		t.Error(err.Error())
