@@ -22,14 +22,43 @@ build:
     - script:
        name: go build
        code: |
-         go build
+         go install
 
     # Test the project
     # - script:
     #     name: go test
     #     code: |
-    #       go test -v ./config
+    #       go test -v steps:
 
 deploy:
     steps:
         - heroku-deploy
+
+        - add-to-known_hosts:
+            hostname: 54.213.36.40
+
+        - mktemp:
+            envvar: PRIVATEKEY_PATH
+
+        - create-file:
+            name: write key
+            filename: $PRIVATEKEY_PATH
+            content: $AWS_DEPLOY_PRIVATE
+            overwrite: true
+            hide-from-log: true
+
+        - script:
+            name: check
+            code: |
+                cat $PRIVATEKEY_PATH
+
+        - script:
+            name: deploy to aws
+            code: |
+                rsync -i $PRIVATEKEY_PATH $GOPATH/bin/golang-web goadm@54.213.36.40:/usr/local/src/go/bin
+        # - sjoerdmulder/rsync-deploy:
+        #     host: 54.200.43.117
+        #     directory: /usr/local/src/golang-web
+        #     sshkey: $PRIVATEKEY_PATH
+        #     user: ec2-user
+        #     soruce: $WERCKER_OUTPUT_DIR
