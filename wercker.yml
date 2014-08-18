@@ -13,16 +13,10 @@ build:
     - script:
         name: go get
         code: |
-          cd $WERCKER_SOURCE_DIR
-          go version
-          go get -v github.com/tools/godep
-          godep restore
-
-    # Build the project
-    - script:
-       name: go build
-       code: |
-         go install
+            cd $WERCKER_SOURCE_DIR
+            go version
+            go get -v github.com/tools/godep
+            godep restore
 
     # Test the project
     # - script:
@@ -30,10 +24,21 @@ build:
     #     code: |
     #       go test -v steps:
 
+    # Build the project
+    - script:
+        name: go build
+        code: |
+            go build .
+            ls
+            cp golang-web $WERCKER_CACHE_DIR
+
+    - script:
+        name: copy output
+        code: |-
+            ls
+            rsync -avz "$WERCKER_SOURCE_DIR/" "$WERCKER_OUTPUT_DIR"
 deploy:
     steps:
-        - heroku-deploy
-
         - add-to-known_hosts:
             hostname: 54.213.36.40
 
@@ -48,17 +53,7 @@ deploy:
             hide-from-log: true
 
         - script:
-            name: check
-            code: |
-                cat $PRIVATEKEY_PATH
-
-        - script:
             name: deploy to aws
             code: |
-                rsync -i $PRIVATEKEY_PATH $GOPATH/bin/golang-web goadm@54.213.36.40:/usr/local/src/go/bin
-        # - sjoerdmulder/rsync-deploy:
-        #     host: 54.200.43.117
-        #     directory: /usr/local/src/golang-web
-        #     sshkey: $PRIVATEKEY_PATH
-        #     user: ec2-user
-        #     soruce: $WERCKER_OUTPUT_DIR
+                ls $WERCKER_OUTPUT_DIR
+                rsync -v -e "ssh -i $PRIVATEKEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=no" $WERCKER_OUTPUT_DIR/golang-web goadm@54.213.36.40:/usr/local/src/go/bin
