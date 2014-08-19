@@ -56,3 +56,7 @@ deploy:
         sshkey: $PRIVATEKEY_PATH
         user: goadm
         soruce: $WERCKER_OUTPUT_DIR
+    - script:
+        name: asw ssh
+        code: |
+            ssh -i $PRIVATEKEY_PATH goadm@54.213.36.40 golang-web
