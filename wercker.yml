@@ -35,24 +35,8 @@ build:
         name: copy output
         code: |
             rsync -avz "$WERCKER_SOURCE_DIR/golang-web" "$WERCKER_OUTPUT_DIR"
+
 deploy:
   steps:
-    - add-to-known_hosts:
-        hostname: 54.213.36.40
+    - heroku-deploy
 
-    - mktemp:
-        envvar: PRIVATEKEY_PATH
-
-    - create-file:
-        name: write key
-        filename: $PRIVATEKEY_PATH
-        content: $AWS_DEPLOY_PRIVATE
-        overwrite: true
-        hide-from-log: true
-
-    - sjoerdmulder/rsync-deploy:
-        host: 54.213.36.40
-        directory: /usr/local/src/go/bin
-        sshkey: $PRIVATEKEY_PATH
-        user: goadm
-        soruce: $WERCKER_OUTPUT_DIR
